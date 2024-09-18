@@ -60,7 +60,6 @@ theorem one_positive {α : Type} (R : myOrderedRing α) : R.one ∈ R.P := by
   exact neg_one_not_pos R
   exact neg_one_not_zero R
 
-
 def is_lt {α : Type} (R : myOrderedRing α) (a b : α) : Prop :=
   R.lt a b
 
@@ -220,6 +219,22 @@ theorem lt_transitive {α : Type} (R : myOrderedRing α) (a b c : α) (h : R.lt 
   unfold myOrderedRing.lt
   exact h3
 
+theorem gt_transitive {α : Type} (R : myOrderedRing α) (a b c : α) (h : R.gt b a) (h' : R.gt c b) : R.gt c a := by
+  unfold myOrderedRing.gt at h h' ⊢
+  have h1 : R.add a (R.neg b) ∈ R.P := h
+  have h2 : R.add b (R.neg c) ∈ R.P := h'
+  have h3 : R.add (R.add a (R.neg b)) (R.add b (R.neg c)) ∈ R.P := by
+    apply R.P_add
+    exact h1
+    exact h2
+
+  rw [R.add_assoc a (R.neg b) (R.add b (R.neg c))] at h3
+  rw [←R.add_assoc (R.neg b) b (R.neg c)] at h3
+  rw [R.add_comm (R.neg b) b] at h3
+  rw [R.add_inv] at h3
+  rw [R.add_comm R.zero (R.neg c)] at h3
+  rw [R.add_zero] at h3
+  exact h3
 
 def is_gt {α : Type} (R : myOrderedRing α) (a b : α) : Prop :=
   R.gt a b
@@ -236,6 +251,12 @@ lemma inv_zero_eq_zero {α : Type} (R : myRing α) : R.neg R.zero = R.zero := by
   have h1 : R.add R.zero R.zero = R.zero := by
     rw [R.add_zero]
   apply inverse_unique R R.zero (R.neg R.zero) R.zero h0 h1
+
+theorem one_gt_zero {α : Type} (R : myOrderedRing α) : R.gt R.zero R.one := by
+  unfold myOrderedRing.gt
+  rw [inv_zero_eq_zero]
+  rw [R.add_zero]
+  exact one_positive R
 
 lemma gt0_implies_pos {α : Type} (R : myOrderedRing α) (a : α) (h : R.gt R.zero a) : a ∈ R.P := by
   unfold myOrderedRing.gt at h
@@ -345,6 +366,17 @@ theorem le_or_ge {α : Type} (R : myOrderedRing α) (a b : α) : R.le a b ∨ R.
     left
     exact in_use
 
+theorem le_lerev_implies_eq {α : Type} (R : myOrderedRing α) (a b : α) (h : R.le a b) (h' : R.le b a) : a = b := by
+  unfold myOrderedRing.le at h
+  unfold myOrderedRing.le at h'
+  rcases h with (b_lt_a | b_eq_a)
+  · rcases h' with (a_lt_b | a_eq_b)
+    · have b_lt_a' : R.lt a b := b_lt_a
+      have b_gt_a : R.gt a b := a_lt_b
+      have nb_gt_a : ¬(R.gt a b) := lt_gt_contra R a b b_lt_a
+      contradiction
+    · rw [a_eq_b]
+  · exact b_eq_a
 
 theorem nonzero_sq_pos {α : Type} (R : myOrderedRing α) (a : α) (h : a ≠ R.zero) : (R.mul a a) ∈ R.P := by
   have trich := lt_eq_gt R a R.zero

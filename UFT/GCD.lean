@@ -12,6 +12,8 @@ def is_gcd {α : Type} (R : WellOrderedRing α) (n a b : α) : Prop :=
   divisible R n b ∧
   (∀ x : α, divisible R x a → divisible R x b → R.le n x)
 
+theorem gcd_unique {α : Type} (R : WellOrderedRing α) (a b d d': α) (h : is_gcd R d a b) (h' : is_gcd R d' a b)
+
 lemma div_linear_comb {α : Type} (R : WellOrderedRing α) (a b : α) : ∀ n x y: α,
   divisible R n a → divisible R n b →
   divisible R n (R.add (R.mul a x) (R.mul b y)) := by

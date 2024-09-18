@@ -216,4 +216,27 @@ theorem fundamental_lemma {α : Type} (R : WellOrderedRing α) (a b c : α)
   unfold divisible
   unfold coprime at hcoprime
   have exist_linear_comp := bezout R a b ha hb
-  rcases exist_linear_comp with ⟨x, y, d, is_gcd, linear_comb_eq_d⟩
+  rcases exist_linear_comp with ⟨x, y, d, d_is_gcd, linear_comb_eq_d⟩
+  have d_eq_one := gcd_unique R a b d R.one d_is_gcd hcoprime
+  rw [d_eq_one] at linear_comb_eq_d
+  have linear_comb_mul_c : R.mul c (R.add (R.mul a x) (R.mul b y)) = R.mul c R.one:= by
+    rw [linear_comb_eq_d]
+  unfold divisible at hdiv
+  rcases hdiv with ⟨q, aqeqbc⟩
+  rw [R.distrib] at linear_comb_mul_c
+  rw [←R.mul_assoc] at linear_comb_mul_c
+  rw [R.mul_comm c a] at linear_comb_mul_c
+  rw [R.mul_assoc] at linear_comb_mul_c
+  rw [←R.mul_assoc c b y] at linear_comb_mul_c
+  rw [R.mul_comm c b] at linear_comb_mul_c
+  rw [←aqeqbc] at linear_comb_mul_c
+  rw [R.mul_assoc] at linear_comb_mul_c
+  rw [←R.distrib] at linear_comb_mul_c
+  rw [R.mul_ident] at linear_comb_mul_c
+  use (R.add (R.mul c x) (R.mul q y))
+
+theorem euclids_lemma {α : Type} (R : WellOrderedRing α) (a b p : α) (hp : prime R p) (hdiv : divisible R p (R.mul a b)) : (divisible R p a) ∨ (divisible R p b) := by
+  by_cases pdiva : divisible R p a
+  · left
+    exact pdiva
+  · sorry

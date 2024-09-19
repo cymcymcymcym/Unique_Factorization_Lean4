@@ -11,6 +11,18 @@ def prime {α : Type} (R : WellOrderedRing α) (p : α) : Prop :=
 def composite {α : Type} (R : WellOrderedRing α) (n : α) : Prop :=
   R.gt R.one n ∧ ¬(prime R n)
 
+lemma not_prime_implies_composite {α : Type} (R : WellOrderedRing α) (n : α) (ngt1 : R.gt R.one n) (hnprime : ¬prime R n) : composite R n := by
+  unfold composite
+  constructor
+  · exact ngt1
+  · exact hnprime
+
+lemma primes_pos {α : Type} (R : WellOrderedRing α) (p : α) (hp : prime R p) : p ∈ R.P := by
+  unfold prime at hp
+  rcases hp with ⟨pgt1,tmp⟩
+  have p_gt0 := gt_transitive R.tomyOrderedRing p R.one R.zero pgt1 (one_gt_zero R.tomyOrderedRing)
+  exact (gt0_implies_pos R.tomyOrderedRing p p_gt0)
+
 def coprime {α : Type} (R : WellOrderedRing α) (a b : α) : Prop :=
   is_gcd R R.one a b
 
@@ -76,6 +88,16 @@ lemma composite_more_than_2_divisors {α : Type} (R : WellOrderedRing α) (a : �
     contradiction
   exact hxy
 
+theorem composite_has_positive_div {α : Type} (R : WellOrderedRing α) (a : α) (h : composite R a) : ∃ x y : α, x ≠ R.one ∧ y ≠ R.one ∧ R.mul x y = a ∧ x ∈ R.P := by
+  unfold composite at h
+  rcases h with ⟨agt1, anprime⟩
+  unfold prime at anprime
+  simp at anprime
+  have pos_div := anprime agt1
+  rcases pos_div with ⟨x, y, xy_eq_a, x_gt0, y_gt0, x_n1, y_n1⟩
+  have x_pos : x ∈ R.P := gt0_implies_pos R.tomyOrderedRing x x_gt0
+  use x, y
+
 lemma prime_indivisible_coprime {α : Type} (R : WellOrderedRing α) (a p: α) (ha : a ≠ R.zero) (hp : prime R p) (hndiv : ¬(divisible R p a)) : coprime R a p := by
   unfold coprime
   unfold is_gcd
@@ -135,17 +157,6 @@ lemma prime_indivisible_coprime {α : Type} (R : WellOrderedRing α) (a p: α) (
     rw [R.add_zero] at in_use
     left
     exact R.P_add R.one (R.neg x) (one_positive R.tomyOrderedRing) in_use
-
-
-theorem composite_has_positive_div {α : Type} (R : WellOrderedRing α) (a : α) (h : composite R a) : ∃ x y : α, x ≠ R.one ∧ y ≠ R.one ∧ R.mul x y = a ∧ x ∈ R.P := by
-  unfold composite at h
-  rcases h with ⟨agt1, anprime⟩
-  unfold prime at anprime
-  simp at anprime
-  have pos_div := anprime agt1
-  rcases pos_div with ⟨x, y, xy_eq_a, x_gt0, y_gt0, x_n1, y_n1⟩
-  have x_pos : x ∈ R.P := gt0_implies_pos R.tomyOrderedRing x x_gt0
-  use x, y
 
 theorem have_prime_divisor {α : Type} (R : WellOrderedRing α) :
   ∀ a : α, R.gt R.one a → ∃ p, prime R p ∧ divisible R p a:= by

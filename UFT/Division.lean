@@ -6,6 +6,18 @@ import UFT.IntegralDomain
 def divisible {α : Type} (R : WellOrderedRing α) (a b : α) : Prop :=
   ∃ k : α, R.mul a k = b
 
+lemma one_div_all {α : Type} (R : WellOrderedRing α) (a : α) : divisible R R.one a := by
+  unfold divisible
+  use a
+  rw [R.mul_comm]
+  rw [R.mul_ident]
+
+lemma zero_divisible_by_all {α : Type} (R : WellOrderedRing α) (a : α) :
+  divisible R a R.zero:= by
+  unfold divisible
+  use R.zero
+  rw [mul_zero]
+
 theorem nibzo {α : Type} (R : WellOrderedRing α) : ¬∃ n : α, R.gt R.zero n ∧ R.gt n R.one := by
   by_contra h
   rcases h with ⟨n, h1, h2⟩
@@ -81,6 +93,38 @@ theorem nibzo {α : Type} (R : WellOrderedRing α) : ¬∃ n : α, R.gt R.zero n
     exact m_lt_msq
 
   exact lt_not_refl R.tomyOrderedRing m m_lt_m
+
+lemma gt0_neq1_implies_gt1 {α : Type} (R : WellOrderedRing α) (a : α) (h : R.gt R.zero a) (h1 : a ≠ R.one) : R.gt R.one a := by
+  unfold myOrderedRing.gt at h
+  rw [inv_zero_eq_zero] at h
+  rw [R.add_zero] at h
+  have a_trich := lt_eq_gt R.tomyOrderedRing a R.one
+  rcases a_trich with (a_lt_one | a_eq_one | a_gt_one)
+  · rcases a_lt_one with ⟨in_use, tmp11, tmp12⟩
+    exact lt_rev_gt R.tomyOrderedRing a R.one in_use
+  · rcases a_eq_one with ⟨tmp21, in_use, tmp22⟩
+    contradiction
+  · rcases a_gt_one with ⟨tmp31, tmp32, in_use⟩
+    have one_lt_a := gt_rev_lt R.tomyOrderedRing a R.one in_use
+    have a_trich2 := lt_eq_gt R.tomyOrderedRing R.zero a
+    rcases a_trich2 with (a_lt_zero | a_eq_zero | a_gt_zero)
+    · rcases a_lt_zero with ⟨in_use, tmp41, tmp42⟩
+      unfold myOrderedRing.lt at in_use
+      rw [R.add_comm] at in_use
+      rw [R.add_zero] at in_use
+      have neg_a_not_pos := R.trichotomy2 a h
+      contradiction
+    · rcases a_eq_zero with ⟨in_use, tmp51, tmp52⟩
+      have zero_pos : R.zero ∈ R.P := by
+        rw [tmp51]
+        exact h
+      have zero_npos : R.zero ∉ R.P := R.trichotomy1
+      contradiction
+    · rcases a_gt_zero with ⟨tmp61, tmp62, in_use⟩
+      have nibzo' := nibzo R
+      have exist_gt0_lt1 : ∃ n, R.gt R.zero n ∧ R.gt n R.one := by
+        use a
+      contradiction
 
 theorem a_div_b_then_a_leq_b {α : Type} (R : WellOrderedRing α) (a b : α)
   (ha : a ≠ R.zero) (hb : R.gt R.zero b) (h_div : divisible R a b) : R.le b a := by

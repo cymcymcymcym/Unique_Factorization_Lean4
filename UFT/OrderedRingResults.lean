@@ -263,6 +263,12 @@ lemma gt0_implies_pos {α : Type} (R : myOrderedRing α) (a : α) (h : R.gt R.ze
   rw [inv_zero_eq_zero R.tomyRing, R.add_zero] at h
   exact h
 
+lemma pos_implies_gt0 {α : Type} (R : myOrderedRing α) (a : α) (h : a ∈ R.P) : R.gt R.zero a := by
+  unfold myOrderedRing.gt
+  rw [inv_zero_eq_zero]
+  rw [R.add_zero]
+  exact h
+
 theorem lt_eq_gt {α : Type} (R : myOrderedRing α) (a b : α) : ((R.lt a b) ∧ ¬(a = b) ∧ ¬(R.gt a b)) ∨
                                                             (¬(R.lt a b) ∧ (a = b) ∧ ¬(R.gt a b)) ∨
                                                             (¬(R.lt a b) ∧ ¬(a = b) ∧ (R.gt a b)) := by
@@ -394,6 +400,32 @@ theorem nonzero_sq_pos {α : Type} (R : myOrderedRing α) (a : α) (h : a ≠ R.
     rw [R.add_zero] at a_neg'
     rw [←inv_mul_inv]
     apply R.P_mul (R.neg a) (R.neg a) a_neg' a_neg'
+
+lemma pos_a_mul_b_eq_pos_c {α : Type} (R : myOrderedRing α) (a b c : α) (ha : a ∈ R.P) (hc : c ∈ R.P) (heq : R.mul a b = c) : b ∈ R.P := by
+  have trich_b := lt_eq_gt R b R.zero
+  rcases trich_b with (b_gt_zero | b_eq_zero | b_lt_zero)
+  · rcases b_gt_zero with ⟨in_use, tmp11, tmp12⟩
+    unfold myOrderedRing.lt at in_use
+    rw [inv_zero_eq_zero] at in_use
+    rw [R.add_zero] at in_use
+    exact in_use
+  · rcases b_eq_zero with ⟨tmp21, in_use, tmp22⟩
+    rw [in_use] at heq
+    rw [mul_zero R.tomyRing a] at heq
+    rw [←heq] at hc
+    have zero_npos := R.trichotomy1
+    contradiction
+  · rcases b_lt_zero with ⟨tmp11, tmp12, in_use⟩
+    unfold myOrderedRing.gt at in_use
+    rw [R.add_comm] at in_use
+    rw [R.add_zero] at in_use
+    have neg_c_pos : R.neg c ∈ R.P := by
+      rw [←heq]
+      rw [R.mul_comm]
+      rw [inv_assoc]
+      exact R.P_mul (R.neg b) a in_use ha
+    have neg_c_npos := R.trichotomy2 c hc
+    contradiction
 
 --P10 : ( b ≤ a , y ≤ x) → ( b + y ≤ a + x )
 theorem lt_add {α : Type} (R : myOrderedRing α) (a b x y: α) (h : R.le a b) (h' : R.le x y ) :

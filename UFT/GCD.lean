@@ -12,6 +12,18 @@ def is_gcd {α : Type} (R : WellOrderedRing α) (n a b : α) : Prop :=
   divisible R n b ∧
   (∀ x : α, divisible R x a → divisible R x b → R.le n x)
 
+lemma gcd_comm {α : Type} (R : WellOrderedRing α) (a b d: α) (h : is_gcd R d a b) : is_gcd R d b a := by
+  unfold is_gcd at *
+  rcases h with ⟨ha, hb, dgt0, d_div_a, d_div_b, dg⟩
+  apply And.intro hb
+  apply And.intro ha
+  apply And.intro dgt0
+  apply And.intro d_div_b
+  apply And.intro d_div_a
+  intro x hxb hxa
+  have x_le_d := dg x hxa hxb
+  exact x_le_d
+
 theorem gcd_unique {α : Type} (R : WellOrderedRing α) (a b d d': α) (h : is_gcd R d a b) (h' : is_gcd R d' a b) : d = d' := by
   unfold is_gcd at h h'
   rcases h with ⟨han0, hbn0, dgt0, ddiva, ddivb, dgt⟩

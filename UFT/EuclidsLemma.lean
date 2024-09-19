@@ -14,6 +14,11 @@ def composite {α : Type} (R : WellOrderedRing α) (n : α) : Prop :=
 def coprime {α : Type} (R : WellOrderedRing α) (a b : α) : Prop :=
   is_gcd R R.one a b
 
+lemma coprime_comm {α : Type} (R : WellOrderedRing α) (a b : α) (h : coprime R a b): coprime R b a := by
+  unfold coprime at *
+  have gcd_ba := gcd_comm R a b R.one h
+  exact gcd_ba
+
 lemma atleast2divisors {α : Type} (R : WellOrderedRing α) (a : α) (h : R.gt R.one a) : ∃ x y : α, y ≠ x ∧ (R.mul x y = a) := by
   use a, R.one
   apply And.intro
@@ -71,42 +76,66 @@ lemma composite_more_than_2_divisors {α : Type} (R : WellOrderedRing α) (a : �
     contradiction
   exact hxy
 
-lemma gt0_neq1_implies_gt1 {α : Type} (R : WellOrderedRing α) (a : α) (h : R.gt R.zero a) (h1 : a ≠ R.one) : R.gt R.one a := by
-  unfold myOrderedRing.gt at h
-  rw [inv_zero_eq_zero] at h
-  rw [R.add_zero] at h
-  have a_trich := lt_eq_gt R.tomyOrderedRing a R.one
-  rcases a_trich with (a_lt_one | a_eq_one | a_gt_one)
-  · rcases a_lt_one with ⟨in_use, tmp11, tmp12⟩
-    exact lt_rev_gt R.tomyOrderedRing a R.one in_use
-  · rcases a_eq_one with ⟨tmp21, in_use, tmp22⟩
+lemma prime_indivisible_coprime {α : Type} (R : WellOrderedRing α) (a p: α) (ha : a ≠ R.zero) (hp : prime R p) (hndiv : ¬(divisible R p a)) : coprime R a p := by
+  unfold coprime
+  unfold is_gcd
+  unfold prime at hp
+  rcases hp with ⟨pgt1, pprime⟩
+  have pn0 : p ≠ R.zero := by
+    intro p0
+    rw [p0] at pgt1
+    unfold myOrderedRing.gt at pgt1
+    rw [R.add_comm] at pgt1
+    rw [R.add_zero] at pgt1
+    have neg1npos := neg_one_not_pos R.tomyOrderedRing
     contradiction
-  · rcases a_gt_one with ⟨tmp31, tmp32, in_use⟩
-    have one_lt_a := gt_rev_lt R.tomyOrderedRing a R.one in_use
-    have a_trich2 := lt_eq_gt R.tomyOrderedRing R.zero a
-    rcases a_trich2 with (a_lt_zero | a_eq_zero | a_gt_zero)
-    · rcases a_lt_zero with ⟨in_use, tmp41, tmp42⟩
-      unfold myOrderedRing.lt at in_use
-      rw [R.add_comm] at in_use
-      rw [R.add_zero] at in_use
-      have neg_a_not_pos := R.trichotomy2 a h
-      contradiction
-    · rcases a_eq_zero with ⟨in_use, tmp51, tmp52⟩
-      have zero_pos : R.zero ∈ R.P := by
-        rw [tmp51]
-        exact h
-      have zero_npos : R.zero ∉ R.P := R.trichotomy1
-      contradiction
-    · rcases a_gt_zero with ⟨tmp61, tmp62, in_use⟩
-      have nibzo' := nibzo R
-      have exist_gt0_lt1 : ∃ n, R.gt R.zero n ∧ R.gt n R.one := by
-        use a
-      contradiction
+  have onegt0 := one_gt_zero R.tomyOrderedRing
+  have one_div_a := one_div_all R a
+  have one_div_p := one_div_all R p
+  apply And.intro ha
+  apply And.intro pn0
+  apply And.intro onegt0
+  apply And.intro one_div_a
+  apply And.intro one_div_p
 
-lemma unchange_imply_eq1 {α : Type} (R : myOrderedRing α) (a b: α) (h0 : a ≠ R.zero) (h : R.mul a b = a) : b = R.one := by
-  have mul_one : R.mul a R.one = a := R.mul_ident a
-  rw (config := {occs := .pos [2]}) [←mul_one] at h
-  apply ordered_ring_cancellation R a b R.one h0 h
+  intro x xdiva xdivp
+  rcases xdivp with ⟨qp,qpeq⟩
+  unfold myOrderedRing.le
+  have xn0 : x ≠ R.zero := by
+    intro x0
+    rw [x0] at qpeq
+    rw [R.mul_comm] at qpeq
+    rw [mul_zero R.tomyRing] at qpeq
+    have p0 : p = R.zero := by
+      rw [←qpeq]
+    contradiction
+  have pgt0 := gt_transitive R.tomyOrderedRing p R.one R.zero pgt1 onegt0
+  have x_trich := lt_eq_gt R.tomyOrderedRing x R.zero
+  rcases x_trich with (xgt0 | xeq0 | xlt0)
+  · rcases xgt0 with ⟨in_use, tmp11, tmp12⟩
+    have x_gt0 := lt_rev_gt R.tomyOrderedRing x R.zero in_use
+    have qp_pos := pos_a_mul_b_eq_pos_c R.tomyOrderedRing x qp p (gt0_implies_pos R.tomyOrderedRing x in_use) (gt0_implies_pos R.tomyOrderedRing p pgt0) qpeq
+    have qp_gt0 := pos_implies_gt0 R.tomyOrderedRing qp qp_pos
+    have x1_or_qa1 := pprime x qp qpeq x_gt0 qp_gt0
+    have qp_neq1 : qp ≠ R.one := by
+      intro qp1
+      rw [qp1] at qpeq
+      rw [R.mul_ident] at qpeq
+      rw [qpeq] at xdiva
+      contradiction
+    rcases x1_or_qa1 with (x1 | qa1)
+    · right
+      rw [x1]
+    · contradiction
+  · rcases xeq0 with ⟨tmp21, in_use, tmp22⟩
+    contradiction
+  · rcases xlt0 with ⟨tmp31, tmp32, in_use⟩
+    unfold myOrderedRing.gt at in_use
+    rw [R.add_comm] at in_use
+    rw [R.add_zero] at in_use
+    left
+    exact R.P_add R.one (R.neg x) (one_positive R.tomyOrderedRing) in_use
+
 
 theorem composite_has_positive_div {α : Type} (R : WellOrderedRing α) (a : α) (h : composite R a) : ∃ x y : α, x ≠ R.one ∧ y ≠ R.one ∧ R.mul x y = a ∧ x ∈ R.P := by
   unfold composite at h
@@ -235,8 +264,21 @@ theorem fundamental_lemma {α : Type} (R : WellOrderedRing α) (a b c : α)
   rw [R.mul_ident] at linear_comb_mul_c
   use (R.add (R.mul c x) (R.mul q y))
 
-theorem euclids_lemma {α : Type} (R : WellOrderedRing α) (a b p : α) (hp : prime R p) (hdiv : divisible R p (R.mul a b)) : (divisible R p a) ∨ (divisible R p b) := by
+theorem euclids_lemma {α : Type} (R : WellOrderedRing α) (a b p : α) (ha : a ∈ R.P) (hb : b ∈ R.P) (hp : prime R p) (hdiv : divisible R p (R.mul a b)) : (divisible R p a) ∨ (divisible R p b) := by
   by_cases pdiva : divisible R p a
   · left
     exact pdiva
-  · sorry
+  · have p_pos : p ∈ R.P := by
+      unfold prime at hp
+      rcases hp with ⟨pgt1, pndiv⟩
+      have p_gt0 := gt_transitive R.tomyOrderedRing p R.one R.zero pgt1 (one_gt_zero R.tomyOrderedRing)
+      exact gt0_implies_pos R.tomyOrderedRing p p_gt0
+    have an0 : a ≠ R.zero := by
+      intro a0
+      have a_divisible_by_all := zero_divisible_by_all R p
+      rw [←a0] at a_divisible_by_all
+      contradiction
+    have p_a_coprime := prime_indivisible_coprime R a p an0 hp pdiva
+    have p_div_b := fundamental_lemma R p a b p_pos ha hdiv (coprime_comm R a p p_a_coprime)
+    right
+    exact p_div_b

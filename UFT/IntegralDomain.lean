@@ -154,6 +154,11 @@ theorem ordered_ring_cancellation {α : Type} (R : myOrderedRing α) :
   apply mult_cancel_in_int_dom R.tomyRing a b b' h ha
   apply ordered_ring_is_integral_domain R
 
+lemma unchange_imply_eq1 {α : Type} (R : myOrderedRing α) (a b: α) (h0 : a ≠ R.zero) (h : R.mul a b = a) : b = R.one := by
+  have mul_one : R.mul a R.one = a := R.mul_ident a
+  rw (config := {occs := .pos [2]}) [←mul_one] at h
+  apply ordered_ring_cancellation R a b R.one h0 h
+
 theorem ordered_ring_local_identity {α : Type} (R : myOrderedRing α) :
   ∀ a b : α, R.mul a b = a → a ≠ R.zero → b = R.one := by
   intros a b h ha

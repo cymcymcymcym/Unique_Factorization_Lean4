@@ -13,13 +13,6 @@ def is_prime_factorization {α : Type} (R : WellOrderedRing α) (n : α) (factor
     (∀ p ∈ factors, prime R p) ∧
     (list_product R factors = n)
 
-def unique_prime_factorization {α : Type} (R : WellOrderedRing α) (n : α) : Prop :=
-  ∀ (factors1 factors2 : List α),
-    is_prime_factorization R n factors1 →
-    is_prime_factorization R n factors2 →
-    ∃ (perm : List α → List α),
-      perm factors1 = factors2
-
 lemma prime_have_prime_factorization {α : Type} (R : WellOrderedRing α) (p : α) (pprime : prime R p) : is_prime_factorization R p [p] := by
   unfold is_prime_factorization
   constructor

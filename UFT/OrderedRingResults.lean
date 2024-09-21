@@ -372,6 +372,19 @@ theorem le_or_ge {α : Type} (R : myOrderedRing α) (a b : α) : R.le a b ∨ R.
     left
     exact in_use
 
+theorem le_not_ltrev {α : Type} (R : myOrderedRing α) (a b : α) (h : R.le a b) : ¬R.lt b a := by
+  unfold myOrderedRing.lt
+  unfold myOrderedRing.le at h
+  rcases h with (hlt | heq)
+  · have hltrev := R.trichotomy2 (R.add a (R.neg b)) hlt
+    rw [inv_add_distrib] at hltrev
+    rw [inv_of_inv] at hltrev
+    rw [R.add_comm] at hltrev
+    exact hltrev
+  · rw [heq]
+    rw [R.add_inv]
+    exact R.trichotomy1
+
 theorem le_lerev_implies_eq {α : Type} (R : myOrderedRing α) (a b : α) (h : R.le a b) (h' : R.le b a) : a = b := by
   unfold myOrderedRing.le at h
   unfold myOrderedRing.le at h'

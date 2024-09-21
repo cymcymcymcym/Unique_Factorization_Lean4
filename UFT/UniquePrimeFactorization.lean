@@ -29,3 +29,5 @@ lemma prime_div_prime_implies_equality {α : Type} (R : WellOrderedRing α) (p :
   · rw [r1] at req
     rw [R.mul_ident] at req
     exact req
+
+--tbc

@@ -342,9 +342,11 @@ theorem division_algorithm_existence {α : Type} (R : WellOrderedRing α) (a b :
 
 theorem division_algorithm_uniqueness {α : Type} (R : WellOrderedRing α) (a b q r q' r' : α)
   (h : is_valid_division_result R a b q r)
-  (h' : is_valid_division_result R a b q' r') :
+  (h' : is_valid_division_result R a b q' r')
+  (hle' : R.le r' r):
   q = q' ∧ r = r' := by
   -- Unpack the hypotheses
+
   rcases h with ⟨ha, hb, heq, hge, hlt⟩
   rcases h' with ⟨ha', hb', heq', hge', hlt'⟩
 
@@ -378,10 +380,40 @@ theorem division_algorithm_uniqueness {α : Type} (R : WellOrderedRing α) (a b 
     unfold divisible
     use (R.add q (R.neg q'))
 
-  have r_eq : r = r' := by
-    have r_dichot := le_or_ge R.tomyOrderedRing r r'
-    rcases r_dichot with (h_le | h_ge)
-    sorry
-    sorry
+  have bn0 : b ≠ R.zero := by
+    intro b0
+    rw [b0] at hb
+    have zero_npos := R.trichotomy1
+    contradiction
 
-  sorry
+  by_cases req : r = r'
+  · have radd0 : R.add r' (R.neg r) = R.zero := by
+      rw [req]
+      rw [R.add_inv]
+    rw [radd0] at h_eq
+    rw [←mul_zero R.tomyRing b] at h_eq
+    have qadd0 : (R.add q (R.neg q')) = R.zero := by
+      apply ordered_ring_cancellation R.tomyOrderedRing b (R.add q (R.neg q')) R.zero bn0 h_eq
+    have qeq := add_inv_to_zero R.tomyRing q q' qadd0
+    exact ⟨qeq, req⟩
+  · rcases hle' with (rlt | reqr')
+    · have b_le_rdiff := a_div_b_then_a_leq_b R b (R.add r' (R.neg r)) bn0 (pos_implies_gt0 R.tomyOrderedRing (R.add r' (R.neg r)) rlt) b_div_r_diff
+      have rdiff_lt_b : R.lt b (R.add r' (R.neg r))  := by
+        unfold myOrderedRing.lt
+        rw [inv_distrib_add]
+        rw [inv_of_inv]
+        rw [←R.add_assoc]
+        unfold myOrderedRing.gt at hlt'
+        rcases hge with (rgt0 | req0)
+        · rw [inv_zero_eq_zero] at rgt0
+          rw [R.add_zero] at rgt0
+
+          apply R.P_add (R.add b (R.neg r')) r hlt' rgt0
+        · rw [←req0]
+          rw [R.add_zero]
+          exact hlt'
+      have pre_contra := le_not_ltrev R.tomyOrderedRing (R.add r' (R.neg r)) b b_le_rdiff
+      contradiction
+
+    · rw [reqr'] at req
+      contradiction

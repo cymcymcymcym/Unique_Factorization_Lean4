@@ -31,3 +31,5 @@ lemma prime_div_prime_implies_equality {α : Type} (R : WellOrderedRing α) (p :
     exact req
 
 --tbc
+ lemma extended_euclids_lemma {α : Type} (R : WellOrderedRing α) (p) (factor : List α) (hp : prime R p) (hfactor : ∀ q ∈ factor, prime R q) : p ∈ factor := by
+  sorry

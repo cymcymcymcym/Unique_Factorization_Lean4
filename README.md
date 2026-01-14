@@ -7,4 +7,4 @@ Main Results:
 - Bezout's lemma in [GCD.lean](./UFT/GCD.lean)
 - Euclid's lemma in [Euclidslemma.lean](./UFT/EuclidsLemma.lean)
 - Prime factorization existence in [PrimeFactorizationExists.lean](./UFT/PrimeFactorizationExists.lean)
-- Prime factorization uniqueness in [UniquePrimeFactorization.lean](./UFT/UniquePrimeFactorization.lean) (to be continued)
+- Prime factorization uniqueness in [UniquePrimeFactorization.lean](./UFT/UniquePrimeFactorization.lean)
